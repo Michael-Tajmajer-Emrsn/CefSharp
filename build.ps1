@@ -1,11 +1,11 @@
 param(
     [ValidateSet("vs2013", "vs2015", "nupkg-only", "gitlink")]
-    [Parameter(Position = 0)] 
-    [string] $Target = "vs2013",
+    [Parameter(Position = 0)]
+    [string] $Target = "vs2015",
     [Parameter(Position = 1)]
-    [string] $Version = "59.0.0",
+    [string] $Version = "62.0.0",
     [Parameter(Position = 2)]
-    [string] $AssemblyVersion = "59.0.0"   
+    [string] $AssemblyVersion = "62.0.0"
 )
 
 $WorkingDir = split-path -parent $MyInvocation.MyCommand.Definition
@@ -16,7 +16,7 @@ $CefSln = Join-Path $WorkingDir 'CefSharp3.sln'
 $CefSharpCorePackagesXml = [xml](Get-Content (Join-Path $WorkingDir 'CefSharp.Core\Packages.config'))
 $RedistVersion = $CefSharpCorePackagesXml.SelectSingleNode("//packages/package[@id='cef.sdk']/@version").value
 
-function Write-Diagnostic 
+function Write-Diagnostic
 {
     param(
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
@@ -36,34 +36,34 @@ if (Test-Path Env:\APPVEYOR_BUILD_VERSION)
 if ($env:APPVEYOR_REPO_TAG -eq "True")
 {
     $Version = "$env:APPVEYOR_REPO_TAG_NAME".Substring(1)  # trim leading "v"
-    Write-Diagnostic "Setting version based on tag to $Version"    
+    Write-Diagnostic "Setting version based on tag to $Version"
 }
 
 # https://github.com/jbake/Powershell_scripts/blob/master/Invoke-BatchFile.ps1
-function Invoke-BatchFile 
+function Invoke-BatchFile
 {
    param(
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [string]$Path, 
+        [string]$Path,
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
         [string]$Parameters
    )
 
-   $tempFile = [IO.Path]::GetTempFileName()  
+   $tempFile = [IO.Path]::GetTempFileName()
 
-   cmd.exe /c " `"$Path`" $Parameters && set > `"$tempFile`" " 
+   cmd.exe /c " `"$Path`" $Parameters && set > `"$tempFile`" "
 
-   Get-Content $tempFile | Foreach-Object {   
-       if ($_ -match "^(.*?)=(.*)$")  
-       { 
-           Set-Content "env:\$($matches[1])" $matches[2]  
-       } 
-   }  
+   Get-Content $tempFile | Foreach-Object {
+       if ($_ -match "^(.*?)=(.*)$")
+       {
+           Set-Content "env:\$($matches[1])" $matches[2]
+       }
+   }
 
    Remove-Item $tempFile
 }
 
-function Die 
+function Die
 {
     param(
         [Parameter(Position = 0, ValueFromPipeline = $true)]
@@ -71,11 +71,11 @@ function Die
     )
 
     Write-Host
-    Write-Error $Message 
+    Write-Error $Message
     exit 1
 }
 
-function Warn 
+function Warn
 {
     param(
         [Parameter(Position = 0, ValueFromPipeline = $true)]
@@ -87,7 +87,7 @@ function Warn
     Write-Host
 }
 
-function TernaryReturn 
+function TernaryReturn
 {
     param(
         [Parameter(Position = 0, ValueFromPipeline = $true)]
@@ -101,20 +101,20 @@ function TernaryReturn
     if($Yes) {
         return $Value
     }
-    
+
     $Value2
 }
 
-function Msvs 
+function Msvs
 {
     param(
         [ValidateSet('v120', 'v140')]
         [Parameter(Position = 0, ValueFromPipeline = $true)]
-        [string] $Toolchain, 
+        [string] $Toolchain,
 
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         [ValidateSet('Debug', 'Release')]
-        [string] $Configuration, 
+        [string] $Configuration,
 
         [Parameter(Position = 2, ValueFromPipeline = $true)]
         [ValidateSet('x86', 'x64')]
@@ -185,10 +185,10 @@ function Msvs
     $Process = New-Object System.Diagnostics.Process
     $Process.StartInfo = $startInfo
     $Process.Start()
-    
+
     $stdout = $Process.StandardOutput.ReadToEnd()
     $stderr = $Process.StandardError.ReadToEnd()
-    
+
     $Process.WaitForExit()
 
     if($Process.ExitCode -ne 0)
@@ -199,7 +199,7 @@ function Msvs
     }
 }
 
-function VSX 
+function VSX
 {
     param(
         [ValidateSet('v120', 'v140')]
@@ -246,7 +246,7 @@ function Nupkg
         Write-Diagnostic "Skipping Nupkg"
         return
     }
-    
+
     $nuget = Join-Path $WorkingDir .\nuget\NuGet.exe
     if(-not (Test-Path $nuget)) {
         Die "Please install nuget. More information available at: http://docs.nuget.org/docs/start-here/installing-nuget"
@@ -281,10 +281,10 @@ function DownloadNuget()
 function UpdateSymbolsWithGitLink()
 {
     $gitlink = "GitLink.exe"
-    
+
     #Check for GitLink
-    if ((Get-Command $gitlink -ErrorAction SilentlyContinue) -eq $null) 
-    { 
+    if ((Get-Command $gitlink -ErrorAction SilentlyContinue) -eq $null)
+    {
         #Download if not on path and not in Nuget folder (TODO: change to different folder)
         $gitlink = Join-Path $WorkingDir .\nuget\GitLink.exe
         if(-not (Test-Path $gitlink))
@@ -294,9 +294,9 @@ function UpdateSymbolsWithGitLink()
             $client.DownloadFile('https://github.com/GitTools/GitLink/releases/download/2.3.0/GitLink.exe', $gitlink);
         }
     }
-    
+
     Write-Diagnostic "GitLink working dir : $WorkingDir"
-    
+
     # Run GitLink in the workingDir
     . $gitlink $WorkingDir -f CefSharp3.sln -u https://github.com/CefSharp/CefSharp -c Release -p x64 -ignore CefSharp.Example,CefSharp.Wpf.Example,CefSharp.OffScreen.Example,CefSharp.WinForms.Example
     . $gitlink $WorkingDir -f CefSharp3.sln -u https://github.com/CefSharp/CefSharp -c Release -p x86 -ignore CefSharp.Example,CefSharp.Wpf.Example,CefSharp.OffScreen.Example,CefSharp.WinForms.Example
@@ -309,11 +309,11 @@ function WriteAssemblyVersion
     $Filename = Join-Path $WorkingDir CefSharp\Properties\AssemblyInfo.cs
     $Regex = 'public const string AssemblyVersion = "(.*)"';
     $Regex2 = 'public const string AssemblyFileVersion = "(.*)"'
-    
+
     $AssemblyInfo = Get-Content $Filename
     $NewString = $AssemblyInfo -replace $Regex, "public const string AssemblyVersion = ""$AssemblyVersion"""
     $NewString = $NewString -replace $Regex2, "public const string AssemblyFileVersion = ""$AssemblyVersion.0"""
-    
+
     $NewString | Set-Content $Filename -Encoding UTF8
 }
 
@@ -321,10 +321,10 @@ function WriteVersionToManifest($manifest)
 {
     $Filename = Join-Path $WorkingDir $manifest
     $Regex = 'assemblyIdentity version="(.*?)"';
-    
+
     $ManifestData = Get-Content $Filename
     $NewString = $ManifestData -replace $Regex, "assemblyIdentity version=""$AssemblyVersion.0"""
-    
+
     $NewString | Set-Content $Filename -Encoding UTF8
 }
 
@@ -333,11 +333,11 @@ function WriteVersionToResourceFile($resourceFile)
     $Filename = Join-Path $WorkingDir $resourceFile
     $Regex1 = 'VERSION .*';
     $Regex2 = 'Version", ".*?"';
-    
+
     $ResourceData = Get-Content $Filename
     $NewString = $ResourceData -replace $Regex1, "VERSION $AssemblyVersion"
     $NewString = $NewString -replace $Regex2, "Version"", ""$AssemblyVersion"""
-    
+
     $NewString | Set-Content $Filename -Encoding UTF8
 }
 
