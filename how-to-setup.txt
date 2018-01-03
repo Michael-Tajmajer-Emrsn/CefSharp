@@ -1,0 +1,41 @@
+See: https://github.com/cefsharp/cef-binary/wiki
+
+
+For build branch 2704 and newer. Using releases from Spotify CEF Automated Build server
+
+The latest version of the build.ps1 powershell script will download the specified CEF Binary revision and generate the packages automatically.
+
+    Git clone the cef-binary repository
+    Execute build.ps1 (usage examples below)
+    Nuget packages generated in nuget folder
+
+# Build with default settings this will generate VS2013 and VS2015 builds of the libcef_wrapper and generate the nuget packages
+.\build.ps1
+
+# Build the default version targeting only VS2013 and then generate the nuget packages
+.\build.ps1 -Target vs2013
+.\build.ps1 -Target nupkg-only
+
+# Build version 3.2924.1538.gbfdeccd with VS2013
+.\build.ps1 -Target vs2013 -CefVersion 3.2924.1538.gbfdeccd
+.\build.ps1 -Target nupkg-only -CefVersion 3.2924.1538.gbfdeccd
+
+# Build version 3.2924.1538.gbfdeccd with VS2015
+.\build.ps1 -Target vs2015 -CefVersion 3.2924.1538.gbfdeccd
+.\build.ps1 -Target nupkg-only -CefVersion 3.2924.1538.gbfdeccd
+
+# Build version 3.2924.1538.gbfdeccd with VS2015 using your locally compiled CEF version
+.\build.ps1 -Target vs2015 -DownloadBinary local -CefVersion 3.2924.1538.gbfdeccd -CefBinaryDir "../../cefsource/chromium/src/cef/binary_distrib/"
+.\build.ps1 -Target nupkg-only -DownloadBinary none -CefVersion 3.2924.1538.gbfdeccd
+
+
+For build to work you may need to set:
+
+set VCTargetsPath=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140
+or
+$env:VCTargetsPath="C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140"
+##set GYP_MSVS_VERSION=2015
+
+We build with VS2015 so:
+.\build.ps1 -Target vs2015
+.\build.ps1 -Target nupkg-only
