@@ -97,7 +97,7 @@ namespace CefSharp.Internals
         }
 
 
-        public void ObjectsBound(List<Tuple<string, bool, bool>> objs)
+        public void ObjectsBound(List<string> objs)
         {
             //Execute on Threadpool so we don't unnessicarily block the CEF IO thread
             var handler = ObjectBoundInJavascript;
@@ -107,7 +107,7 @@ namespace CefSharp.Internals
                 {
                     foreach (var obj in objs)
                     {
-                        handler?.Invoke(this, new JavascriptBindingCompleteEventArgs(this, obj.Item1, obj.Item2, obj.Item3));
+                        handler?.Invoke(this, new JavascriptBindingCompleteEventArgs(this, obj, false, false));
                     }
                 });			
             }
