@@ -1217,19 +1217,14 @@ namespace CefSharp
                 {
                     auto objectRepository = _browserAdapter->JavascriptObjectRepository;
 
-                    auto boundObjects = argList->GetList(0);
-                    auto objs = gcnew List<Tuple<String^, bool, bool>^>(boundObjects->GetSize());
-                    for (auto i = 0; i < boundObjects->GetSize(); i++)
+                    auto objectNames = argList->GetList(0);
+                    auto names = gcnew List<String^>(objectNames->GetSize());
+                    for (auto i = 0; i < objectNames->GetSize(); i++)
                     {
-                        auto obj = boundObjects->GetDictionary(i);
-                        auto name = obj->GetString("Name");
-                        auto alreadyBound = obj->GetBool("AlreadyBound");
-                        auto isCached = obj->GetBool("IsCached");                        
-
-                        objs->Add(Tuple::Create(StringUtils::ToClr(name), alreadyBound, isCached));
+                        names->Add(StringUtils::ToClr(objectNames->GetString(i)));
                     }
                     
-                    objectRepository->ObjectsBound(objs);
+                    objectRepository->ObjectsBound(names);
                 }
 
                 handled = true;
