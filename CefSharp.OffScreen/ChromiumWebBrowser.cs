@@ -278,9 +278,15 @@ namespace CefSharp.OffScreen
         public ChromiumWebBrowser(string address = "", BrowserSettings browserSettings = null,
             RequestContext requestContext = null, bool automaticallyCreateBrowser = true)
         {
-            if (!Cef.IsInitialized && !Cef.Initialize())
+            if (!Cef.IsInitialized)
             {
-                throw new InvalidOperationException("Cef::Initialize() failed");
+                var settings = new CefSettings();
+                settings.WindowlessRenderingEnabled = true;
+
+                if (!Cef.Initialize(settings))
+                {
+                    throw new InvalidOperationException("Cef::Initialize() failed");
+                }
             }
 
             ResourceHandlerFactory = new DefaultResourceHandlerFactory();
@@ -485,7 +491,7 @@ namespace CefSharp.OffScreen
                     // Chromium has rendered.  Tell the task about it.
                     Paint -= paint;
 
-                    completionSource.TrySetResultAsync(ScreenshotOrNull());
+                    completionSource.TrySetResultAsync(ScreenshotOrNull(blend));
                 };
 
                 Paint += paint;
